@@ -88,7 +88,12 @@ boundary.
       surfaced a third, previously-uncharacterized bug — see CONTEXT.md
       quirk #3, duplicate explicit article slug — beyond the two flagged
       in TEST-PLAN.md §2)
-- [ ] Phase 5 — E2E happy path
+- [x] Phase 5 — E2E happy path (1 scripted flow: register x2 -> login ->
+      create article with tags -> list/filter by author/tag -> tag list ->
+      comment -> favorite -> follow -> feed -> edit -> re-retrieve,
+      asserting full response shape at each step. Surfaced a fourth
+      previously-uncharacterized bug — see CONTEXT.md quirk #4,
+      `/api/articles/feed` is unreachable due to route shadowing)
 - [ ] Phase 6 — optional (performance smoke)
 
 ## Open findings

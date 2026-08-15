@@ -101,6 +101,30 @@ Under autonomous mode this shipped without stopping, same as the smaller
 than those (a new defect, not a wrong test assumption), which is exactly
 the kind of finding this doc exists to flag for whoever reads it next.
 
+**Phase 5.** One phase/one commit: a single scripted E2E flow (register x2,
+login, create article with tags, list/filter, tag list, comment, favorite,
+follow, feed, edit, re-retrieve), asserting full response shape at each
+step per TEST-PLAN.md's own instruction ("asserting the full response
+shape at each step rather than isolated status codes"). Surfaced a fourth
+bug, more structurally significant than #3: `/api/articles/feed` is
+completely unreachable. `conduit/apps/articles/urls.py` wires the
+DefaultRouter's URLs (which include the article-detail route,
+`articles/(?P<slug>[^/.]+)$`) ahead of the explicit `articles/feed`
+pattern; Django resolves in list order, the detail route's `[^/.]+` regex
+matches the literal string "feed" with no trouble, and every request to
+the feed endpoint resolves to `ArticleViewSet.retrieve(slug='feed')`
+instead — verified directly with `django.urls.resolve()`, not inferred
+from reading the regex. This means `ArticlesFeedAPIView` has been
+unreachable via HTTP this entire time, regardless of whether its own
+`get_queryset` logic is correct. TEST-PLAN.md's Phase 2 (articles
+integration block) never actually exercised `/api/articles/feed` at all —
+Phase 5's E2E flow was the first and only place in the whole plan that
+did, which is itself worth noting: an omission in Phase 2's own coverage
+list let a full endpoint go untested for four phases before the E2E pass
+caught it. Handled the same way as quirk #3 — documented in CONTEXT.md,
+the E2E test asserts the actual 404 rather than skipping or fixing the
+route ordering, and shipped without stopping under autonomous mode.
+
 ## Commit-mode fidelity
 
 Recorded answer: autonomous commit-as-you-go, no stop-for-review. Watching

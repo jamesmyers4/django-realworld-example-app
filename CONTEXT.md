@@ -93,6 +93,25 @@ expected, not a bug.
    opt-out is a later-Django addition), so this has to be characterized
    with `pytest.raises(IntegrityError)`, not a response-status assertion.
 
+4. **`/api/articles/feed` is unreachable — shadowed by the article-detail
+   route.** `conduit/apps/articles/urls.py` registers the `DefaultRouter`'s
+   URLs (`url(r'^', include(router.urls))`, which includes
+   `articles/(?P<slug>[^/.]+)$` for `ArticleViewSet.retrieve`) *before* the
+   explicit `url(r'^articles/feed/?$', ArticlesFeedAPIView.as_view())`
+   line. Django resolves URLs in list order and the router's detail regex
+   (`[^/.]+`) matches the literal string `feed` just fine, so every request
+   to `/api/articles/feed` resolves to `ArticleViewSet.retrieve(slug='feed')`
+   instead — confirmed directly via `django.urls.resolve('/api/articles/feed')`,
+   not inferred from reading the regex alone. Since no article has the slug
+   `feed`, this always 404s (`NotFound`) rather than ever reaching
+   `ArticlesFeedAPIView`. The feed endpoint is completely unreachable as
+   currently routed, regardless of what `ArticlesFeedAPIView.get_queryset`
+   itself does. Found while writing Phase 5's E2E happy-path flow, which is
+   the only place in TEST-PLAN.md that actually exercises `/api/articles/feed`
+   end-to-end (Phase 2's articles block didn't cover it). Not one of the
+   two user-flagged quirks and not something to fix here — same discipline
+   as quirk #3: characterized as current behavior, not patched.
+
 ## Runtime ceiling
 
 Django 1.10.5 is pinned in `requirements.txt` (2016-era) and wasn't asked
