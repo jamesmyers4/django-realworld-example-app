@@ -52,6 +52,17 @@ expected, not a bug.
    small-int cache; not reliable in general. Characterized as current
    behavior under test, not treated as correct-by-definition or fixed.
 
+## API behavior notes
+
+- **Unauthenticated requests to `IsAuthenticated`-gated endpoints return
+  403, not 401.** DRF only returns 401 when the authenticator in use
+  implements `authenticate_header()`; the app's custom `JWTAuthentication`
+  (`conduit/apps/authentication/backends.py`) doesn't, so DRF falls back to
+  403 Forbidden across the board (current user, article create/update,
+  comment create/destroy, article favorite, profile follow). Found while
+  writing Phase 2 API tests — not a bug, just the actual status code to
+  assert against.
+
 ## Runtime ceiling
 
 Django 1.10.5 is pinned in `requirements.txt` (2016-era) and wasn't asked

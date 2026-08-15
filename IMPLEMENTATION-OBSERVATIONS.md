@@ -73,6 +73,22 @@ commit mode — both are exactly the kind of small in-flight call autonomous
 mode is supposed to absorb, and both are logged here rather than passed
 through silently.
 
+**Phase 2.** One phase/one commit again, matching TEST-PLAN.md's four
+per-app blocks (authentication, profiles, articles, articles
+comments/tags/favorites) — 46 tests. First real mid-phase surprise: every
+`IsAuthenticated`-gated endpoint returns 403 for an unauthenticated
+request, not 401 — DRF only emits 401 when the active authenticator
+implements `authenticate_header()`, and the app's custom `JWTAuthentication`
+doesn't. Wrote the tests assuming 401 (the more common REST convention),
+watched 7 of them fail identically, confirmed the cause by reading DRF's
+`exception_handler` source directly rather than guessing, then fixed the
+assertions. Autonomous commit mode absorbed this without stopping — it's
+exactly the "found something the plan didn't anticipate, but not judgment
+enough to warrant asking" case, as opposed to `test-implement`'s one named
+guardrail (stop and ask when implementation hits something *unanticipated
+in a way that needs a decision*, not just a wrong assumption to correct
+against ground truth already in the code).
+
 ## CONTEXT.md growth during implementation
 
 TEST-PLAN-CONTEXT.md's architecture section predicts CONTEXT.md grows
@@ -84,15 +100,14 @@ TESTING.md's coverage-state checklist — it's TESTING.md that ends up doing
 most of the real-time updating while CONTEXT.md stays closer to static
 reference material once the initial stub is written.
 
-Through Phase 0 and Phase 1: the latter. TESTING.md updated every phase (a
-checklist tick plus a one-line coverage note); CONTEXT.md hasn't needed a
-single edit since the initial stub, because both real discoveries this
-session (the Profile-fixture wrinkle, the Phase 1/3 mismatch) were
-process/plan findings rather than facts about the *application* — they
-belong here, not in CONTEXT.md, which is scoped to domain vocabulary and
-durable behavioral/runtime facts about the app itself. This is a real data
-point for TEST-PLAN-CONTEXT.md: CONTEXT.md's during-implementation growth
-may be gated on hitting an actual new fact about the app (a routing quirk,
-another version ceiling), not on phase count — it may simply stay quiet
-for stretches where nothing new about the *app* (as opposed to the
-process) turns up.
+Through Phase 0 and Phase 1: neither needed a CONTEXT.md edit — both real
+discoveries in those phases (the Profile-fixture wrinkle, the Phase 1/3
+mismatch) were process/plan findings, which belong here, not in
+CONTEXT.md's domain-vocabulary/app-facts scope. That held only until Phase
+2 turned up an actual app-behavior fact (the 403-not-401 status code on
+every `IsAuthenticated` endpoint) — added to CONTEXT.md's new "API
+behavior notes" section immediately, alongside the two original quirks.
+So the more precise version of the hypothesis holds: CONTEXT.md's growth
+really is gated on hitting a new fact about the *app* specifically, not on
+phase count or elapsed time — Phase 0/1 didn't surface one, Phase 2 did,
+and the file only moved when that happened.

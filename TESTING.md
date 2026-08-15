@@ -70,7 +70,11 @@ boundary.
       `Profile` follow/favorite, `core.utils.generate_random_string`,
       `core_exception_handler`, `RegistrationSerializer`/`LoginSerializer`/
       `ArticleSerializer`/`CommentSerializer` field validation)
-- [ ] Phase 2 — integration / API contract tests
+- [x] Phase 2 — integration / API contract tests (46 tests: registration,
+      login, current-user retrieve/update; profile retrieve/follow/unfollow;
+      article list with author/tag/favorited filters and pagination,
+      create, retrieve, update; comment create/list/destroy; tag list;
+      article favorite/unfavorite)
 - [ ] Phase 3 — authorization / boundary testing
 - [ ] Phase 4 — edge / negative / boundary cases
 - [ ] Phase 5 — E2E happy path
