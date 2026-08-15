@@ -1,0 +1,30 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Nightly full regression, including the optional performance-smoke
+    # layer that PR-gated runs skip. 03:00 UTC.
+    - cron: '0 3 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Django 1.10.5 (pinned in requirements.txt) is the newest Python
+      # this app runs on at all -- see CONTEXT.md "Runtime ceiling". The
+      # runner's own Python is irrelevant here; everything runs inside the
+      # python:3.7-slim container from the Phase 0 Dockerfile via `make`,
+      # the same way TESTING.md documents running the suite locally.
+      - name: Run PR-gated tests (unit + integration + auth/boundary)
+        if: github.event_name != 'schedule'
+        run: make test
+
+      - name: Run nightly full regression
+        if: github.event_name == 'schedule'
+        run: make test-full
