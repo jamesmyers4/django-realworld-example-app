@@ -54,14 +54,23 @@ expected, not a bug.
 
 ## API behavior notes
 
-- **Unauthenticated requests to `IsAuthenticated`-gated endpoints return
-  403, not 401.** DRF only returns 401 when the authenticator in use
-  implements `authenticate_header()`; the app's custom `JWTAuthentication`
-  (`conduit/apps/authentication/backends.py`) doesn't, so DRF falls back to
-  403 Forbidden across the board (current user, article create/update,
-  comment create/destroy, article favorite, profile follow). Found while
-  writing Phase 2 API tests — not a bug, just the actual status code to
-  assert against.
+- **Every authentication failure returns 403, not 401 — not just missing
+  credentials.** `APIView.handle_exception` (DRF core) coerces both
+  `NotAuthenticated` and `AuthenticationFailed` down to 403 whenever
+  `get_authenticate_header()` returns falsy; that only returns truthy when
+  the authenticator implements `authenticate_header()`. The app's custom
+  `JWTAuthentication` (`conduit/apps/authentication/backends.py`) doesn't
+  override it, so this applies uniformly: a missing Authorization header, a
+  malformed token, an expired token, a token for a deleted user, a token
+  for a deactivated user, and a wrong auth-scheme prefix (e.g. `Bearer`
+  instead of `Token`) all return 403. There is no 401 case anywhere in this
+  app's actual behavior, despite `JWTAuthentication._authenticate_credentials`
+  raising `AuthenticationFailed` (normally a 401) in several of those
+  cases — DRF's exception handling overrides it before the response is
+  built. First found (incompletely — as "missing credentials only") while
+  writing Phase 2 API tests; the full picture (all auth-failure modes, not
+  just missing-header) only became clear writing Phase 3's JWT-handling
+  tests, which is why this note itself changed shape between phases.
 
 ## Runtime ceiling
 

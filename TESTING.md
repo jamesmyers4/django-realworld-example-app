@@ -75,7 +75,11 @@ boundary.
       article list with author/tag/favorited filters and pagination,
       create, retrieve, update; comment create/list/destroy; tag list;
       article favorite/unfavorite)
-- [ ] Phase 3 — authorization / boundary testing
+- [x] Phase 3 — authorization / boundary testing (10 tests: the two
+      security-relevant characterization tests for the ownership-check gap
+      — `test_KNOWN_BUG_*`, see CONTEXT.md — cross-user article edit and
+      comment delete; unauthenticated access to protected mutation
+      endpoints; invalid/expired/malformed/wrong-scheme JWT handling)
 - [ ] Phase 4 — edge / negative / boundary cases
 - [ ] Phase 5 — E2E happy path
 - [ ] Phase 6 — optional (performance smoke)

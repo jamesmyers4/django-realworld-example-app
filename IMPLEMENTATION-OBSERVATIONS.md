@@ -54,6 +54,16 @@ characterization tests to Phase 3, where the plan's own phase *content*
 it's a real plan/content mismatch, not a judgment call that should pass
 silently under autonomous commit mode.
 
+**Phase 2.** One phase/one commit, matching TEST-PLAN.md's four per-app
+blocks (authentication, profiles, articles, articles
+comments/tags/favorites) — 46 tests. Fit a single sitting.
+
+**Phase 3.** One phase/one commit, matching TEST-PLAN.md's scope exactly:
+the two `test_KNOWN_BUG_*` characterization tests deferred here from Phase
+1 (see above), unauthenticated access to protected mutation endpoints, and
+invalid/expired/malformed JWT handling — 10 tests. Also fit a single
+sitting.
+
 ## Commit-mode fidelity
 
 Recorded answer: autonomous commit-as-you-go, no stop-for-review. Watching
@@ -89,6 +99,25 @@ guardrail (stop and ask when implementation hits something *unanticipated
 in a way that needs a decision*, not just a wrong assumption to correct
 against ground truth already in the code).
 
+The 403-not-401 thread came back in Phase 3 and needed correcting a second
+time. Phase 2 had found "missing credentials → 403" and recorded that as
+the fact. Writing Phase 3's JWT-handling tests (malformed/expired/
+nonexistent-user/inactive-user tokens) assumed those would be genuine 401s,
+since `JWTAuthentication._authenticate_credentials` explicitly raises
+`AuthenticationFailed`, a 401-status exception by default. All five failed
+identically. Reading `APIView.handle_exception` directly (rather than
+guessing again) showed the coercion to 403 is unconditional — both
+`NotAuthenticated` and `AuthenticationFailed` get flattened by the same
+`get_authenticate_header()` check, regardless of which one was raised or
+why. Rewrote CONTEXT.md's note to state the general rule instead of the
+narrower one Phase 2 had recorded. Worth flagging on its own: a note
+written mid-plan from a narrower vantage point can be *correct but
+incomplete* rather than wrong, and a later phase broadening it isn't the
+same failure mode as Phase 2's outright-wrong 401 guess — both still
+needed the same fix-in-place response under autonomous mode, since nothing
+here rose to the level `test-implement`'s stop-and-ask guardrail is meant
+for.
+
 ## CONTEXT.md growth during implementation
 
 TEST-PLAN-CONTEXT.md's architecture section predicts CONTEXT.md grows
@@ -111,3 +140,16 @@ So the more precise version of the hypothesis holds: CONTEXT.md's growth
 really is gated on hitting a new fact about the *app* specifically, not on
 phase count or elapsed time — Phase 0/1 didn't surface one, Phase 2 did,
 and the file only moved when that happened.
+
+Phase 3 adds a wrinkle to that: it didn't just add to CONTEXT.md, it
+*rewrote* an existing entry — the 403-not-401 note went from "missing
+credentials only" to "every auth-failure mode, unconditionally" (see
+Commit-mode fidelity above). TESTING.md's growth so far has been purely
+additive (checklist ticks, new coverage-note lines); CONTEXT.md's first
+edit past the initial stub was a correction, not an addition. Worth
+watching whether that's a coincidence of this specific fact (status-code
+behavior tested piecemeal across two phases) or a real difference in kind
+between the two docs — TESTING.md tracks what's been covered, which only
+grows, while CONTEXT.md tracks what's true about the app, which can turn
+out to have been incompletely understood the first time it was written
+down.
