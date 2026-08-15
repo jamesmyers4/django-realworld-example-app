@@ -16,20 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v5
-        with:
-          # Django 1.10.5 (pinned in requirements.txt) is the newest Python
-          # this app runs on at all — see CONTEXT.md "Runtime ceiling".
-          python-version: '3.7'
-
-      - name: Install dependencies
-        run: pip install -r requirements-test.txt
-
+      # Django 1.10.5 (pinned in requirements.txt) is the newest Python
+      # this app runs on at all -- see CONTEXT.md "Runtime ceiling". The
+      # runner's own Python is irrelevant here; everything runs inside the
+      # python:3.7-slim container from the Phase 0 Dockerfile via `make`,
+      # the same way TESTING.md documents running the suite locally.
       - name: Run PR-gated tests (unit + integration + auth/boundary)
         if: github.event_name != 'schedule'
-        run: pytest -m "not performance"
+        run: make test
 
       - name: Run nightly full regression
         if: github.event_name == 'schedule'
-        run: pytest
+        run: make test-full
