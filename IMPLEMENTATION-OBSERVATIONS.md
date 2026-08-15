@@ -125,6 +125,70 @@ caught it. Handled the same way as quirk #3 — documented in CONTEXT.md,
 the E2E test asserts the actual 404 rather than skipping or fixing the
 route ordering, and shipped without stopping under autonomous mode.
 
+**Phase 6.** One phase/one commit, matching TEST-PLAN.md's scope exactly:
+2 performance-smoke tests on the paginated article-list endpoint, marked
+`@pytest.mark.performance` per the Phase 0 infra (excluded from
+`make test`, included in `make test-full`) rather than left unmarked and
+just hoped-past. Confirmed the split actually works by running both
+`pytest` and `pytest -m "not performance"` and diffing the counts (135 vs.
+133 collected), not just by reading the marker back. Visual regression,
+cross-browser, and AI/LLM output testing are all N/A per TEST-PLAN.md §1
+(no UI, no LLM pipeline in this repo) and were correctly out of scope —
+nothing to add here. Smallest phase of the six, fit well inside a single
+sitting.
+
+## Summary — six phases, six commits, no stops
+
+All six of TEST-PLAN.md's phases executed in this one session, one commit
+per phase, 135 tests total. Answering the three questions this doc set out
+to track:
+
+- **Phase-sizing floor** (TEST-PLAN-CONTEXT.md's open question, which
+  specifically flagged Phase 0 as a plausible oversized-first-phase risk):
+  didn't bear out. Every phase — including Phase 0's bundled infra setup —
+  fit a single sitting at TEST-PLAN.md's own phase boundaries, no phase
+  needed splitting, and none needed padding either. "Let the plan decide"
+  produced right-sized phases here without a stated time-box.
+- **Commit-mode fidelity**: autonomous commit-as-you-go held for all six
+  phases without a single stop-for-review, including through five
+  in-flight corrections that weren't in TEST-PLAN.md (the Profile-fixture
+  design, the Phase 1/3 characterization-test placement, two rounds of
+  403-vs-401 status-code corrections, and three newly-discovered bugs
+  beyond the two the plan flagged). None of those individually needed a
+  human — they were either factual corrections against ground truth
+  already in the code, or new findings handled with the same
+  characterize-don't-fix discipline the plan already established for the
+  two flagged quirks. `test-implement`'s one named guardrail (stop and ask
+  when something needs a *decision* the plan didn't anticipate) never
+  actually fired in this run — worth flagging for TEST-PLAN-CONTEXT.md as
+  a real gap in validation: this run confirms autonomous mode can absorb
+  surprises, but doesn't yet show what happens when one is big enough to
+  actually need a stop.
+- **CONTEXT.md's during-implementation growth**: real, but not uniform.
+  Quiet through Phases 0–1 (no new app facts, only process/plan notes,
+  which went in this doc instead), then grew three times across
+  Phases 2–5 — once as an addition (403-not-401, Phase 2), once as a
+  correction of that same addition (the fuller, unconditional version,
+  Phase 3), and twice more as wholly new findings (quirks #3 and #4,
+  Phases 4–5). So CONTEXT.md's growth is real and matches
+  TEST-PLAN-CONTEXT.md's prediction, but it's gated on hitting new facts
+  about the *app* specifically, arrives in bursts tied to which phase
+  happens to exercise the relevant code path, and — unlike TESTING.md's
+  purely additive checklist — can require rewriting an earlier entry, not
+  just appending to it.
+
+Net new finding for TEST-PLAN-CONTEXT.md beyond what either dogfeeding run
+had surfaced: **this run turned up two entirely new bugs (quirks #3 and
+#4) that TEST-PLAN.md's own planning session never flagged**, on top of
+correctly executing the two it did flag. Both surfaced naturally while
+writing test cases the plan had already scoped for other reasons (Phase
+4's "duplicate slug" edge case, Phase 5's E2E feed step) — neither required
+hunting. That's arguably the most useful validation of `test-implement`
+as a concept from this run: even a plan written by a careful reading of
+the codebase doesn't catch everything a plan can catch, and phased,
+actually-executed test-writing surfaces real defects a planning-only pass
+does not.
+
 ## Commit-mode fidelity
 
 Recorded answer: autonomous commit-as-you-go, no stop-for-review. Watching

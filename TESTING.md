@@ -94,7 +94,17 @@ boundary.
       asserting full response shape at each step. Surfaced a fourth
       previously-uncharacterized bug — see CONTEXT.md quirk #4,
       `/api/articles/feed` is unreachable due to route shadowing)
-- [ ] Phase 6 — optional (performance smoke)
+- [x] Phase 6 — optional (performance smoke, 2 tests: default page size
+      caps a 50-article result set at 20, listing 200 articles stays
+      under a generous smoke threshold). Marked `@pytest.mark.performance`
+      — excluded from `make test`/PR-gated CI, included in
+      `make test-full`/nightly. Visual regression, cross-browser, and
+      AI/LLM output testing are all N/A for this repo (§1) and out of
+      scope.
+
+**All six phases complete.** 135 tests total (133 always-run + 2
+performance-marked). See IMPLEMENTATION-OBSERVATIONS.md for the full
+process retrospective.
 
 ## Open findings
 
