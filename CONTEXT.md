@@ -72,6 +72,27 @@ expected, not a bug.
   just missing-header) only became clear writing Phase 3's JWT-handling
   tests, which is why this note itself changed shape between phases.
 
+3. **Duplicate explicit article slug causes an unhandled 500, not a clean
+   validation error.** `ArticleSerializer.slug`
+   (`conduit/apps/articles/serializers.py:12`) is manually declared as
+   `serializers.SlugField(required=False)` rather than left for
+   `ModelSerializer` to auto-generate — which is what normally wires up
+   DRF's automatic `UniqueValidator` for `unique=True` model fields. A
+   client that supplies an already-used slug explicitly bypasses
+   validation entirely and hits the DB's UNIQUE constraint directly inside
+   `Article.objects.create()`, which isn't caught anywhere — an unhandled
+   `IntegrityError` (500), not a 400. Found while writing Phase 4's
+   "duplicate slug on article create" test case (already anticipated as a
+   test subject by TEST-PLAN.md §3; the 500-not-400 outcome wasn't).
+   Unlike quirks #1/#2 above, this one isn't user-flagged as a hard
+   guardrail — but it's characterized the same way (current behavior
+   pinned under test, app source not touched) per this session's general
+   discipline, not fixed. Note for anyone testing this again: Django
+   1.10's test `Client` always re-raises a view's uncaught exception
+   rather than handing back a 500 response (the `raise_request_exception`
+   opt-out is a later-Django addition), so this has to be characterized
+   with `pytest.raises(IntegrityError)`, not a response-status assertion.
+
 ## Runtime ceiling
 
 Django 1.10.5 is pinned in `requirements.txt` (2016-era) and wasn't asked

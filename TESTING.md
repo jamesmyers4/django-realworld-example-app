@@ -80,7 +80,14 @@ boundary.
       — `test_KNOWN_BUG_*`, see CONTEXT.md — cross-user article edit and
       comment delete; unauthenticated access to protected mutation
       endpoints; invalid/expired/malformed/wrong-scheme JWT handling)
-- [ ] Phase 4 — edge / negative / boundary cases
+- [x] Phase 4 — edge / negative / boundary cases (18 tests: duplicate
+      username/email on register, missing required fields, malformed JSON
+      body, pagination offset past the end of the result set, follow-self
+      at low and high PKs, double-favorite/unfavorite-when-not-favorited
+      and double-follow/unfollow-when-not-following idempotency. Also
+      surfaced a third, previously-uncharacterized bug — see CONTEXT.md
+      quirk #3, duplicate explicit article slug — beyond the two flagged
+      in TEST-PLAN.md §2)
 - [ ] Phase 5 — E2E happy path
 - [ ] Phase 6 — optional (performance smoke)
 

@@ -64,6 +64,43 @@ the two `test_KNOWN_BUG_*` characterization tests deferred here from Phase
 invalid/expired/malformed JWT handling — 10 tests. Also fit a single
 sitting.
 
+**Phase 4.** One phase/one commit, matching TEST-PLAN.md's scope: duplicate
+username/email, missing fields, malformed JSON, pagination offset past the
+end, follow-self, and favorite/follow idempotency — 18 tests. This phase
+is where the user's hard guardrail ("only characterize the two flagged
+quirks exactly as Phase 1/3 specify") met TEST-PLAN.md's own Phase 4
+content, which independently lists a third quirk-adjacent item: "follow-
+self (including confirming whether the is-comparison bug from §2 item 2
+actually manifests at low PKs in a fresh test DB)". Read the guardrail as
+scoping *where the two flagged quirks get their dedicated characterization
+tests* (Phase 3 for the ownership gap, per the plan-content resolution
+above) rather than as forbidding this Phase-4-native follow-up question
+TEST-PLAN.md itself poses about quirk #2's reference-equality bug at
+different PK ranges — the guardrail's actual concerns (don't fix either
+bug; label the security-relevant one so it can't read as a clean pass) are
+both satisfied either way. Wrote it as two tests: one at ordinary
+(low) PKs, one after padding the table past CPython's small-int cache
+(~256). Both were run for real rather than reasoned about in the
+abstract — the low-PK case returns 400 (blocked) as expected; the
+high-PK case returns 201 (self-follow *succeeds*), which is the bug
+actually manifesting, not a hypothetical. This directly answers
+TEST-PLAN.md's own open question, empirically, for the first time.
+
+Also surfaced a genuinely new bug while writing the plan's own "duplicate
+slug on article create" case: a client-supplied duplicate slug causes an
+unhandled `IntegrityError` (500), not a clean 400 — `ArticleSerializer.slug`
+is manually declared rather than auto-generated, which skips DRF's
+automatic `UniqueValidator` wiring. This is not one of the two
+user-flagged quirks, but TEST-PLAN.md's own general discipline (§2:
+"infer, but confirm... don't silently test the bug as though it were
+spec") applies to any discovery, not just the two named ones — so it's
+characterized the same way (a `test_KNOWN_BUG_*` name, added to CONTEXT.md
+as quirk #3, not fixed) rather than silently patched or silently dropped.
+Under autonomous mode this shipped without stopping, same as the smaller
+403-vs-401 corrections in Phases 2–3 — but it's a heavier judgment call
+than those (a new defect, not a wrong test assumption), which is exactly
+the kind of finding this doc exists to flag for whoever reads it next.
+
 ## Commit-mode fidelity
 
 Recorded answer: autonomous commit-as-you-go, no stop-for-review. Watching
