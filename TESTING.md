@@ -66,7 +66,10 @@ IMPLEMENTATION-OBSERVATIONS.md for the process notes behind each phase
 boundary.
 
 - [x] Phase 0 — test infra bootstrap
-- [ ] Phase 1 — unit tests
+- [x] Phase 1 — unit tests (58 tests: `UserManager`, JWT generation/expiry,
+      `Profile` follow/favorite, `core.utils.generate_random_string`,
+      `core_exception_handler`, `RegistrationSerializer`/`LoginSerializer`/
+      `ArticleSerializer`/`CommentSerializer` field validation)
 - [ ] Phase 2 — integration / API contract tests
 - [ ] Phase 3 — authorization / boundary testing
 - [ ] Phase 4 — edge / negative / boundary cases
