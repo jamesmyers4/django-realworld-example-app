@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Nightly full regression, including the optional performance-smoke
+    # layer that PR-gated runs skip. 03:00 UTC.
+    - cron: '0 3 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v5
+        with:
+          # Django 1.10.5 (pinned in requirements.txt) is the newest Python
+          # this app runs on at all — see CONTEXT.md "Runtime ceiling".
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Run PR-gated tests (unit + integration + auth/boundary)
+        if: github.event_name != 'schedule'
+        run: pytest -m "not performance"
+
+      - name: Run nightly full regression
+        if: github.event_name == 'schedule'
+        run: pytest
